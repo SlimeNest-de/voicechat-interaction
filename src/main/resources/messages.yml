@@ -1,0 +1,13 @@
+# messages.yml - Default English translations for VoiceChat Interaction
+
+only_players: "This command can only be used by players."
+bridge_not_loaded: "Voice chat event bridge is not loaded."
+usage: "§eUsage: /voicechat_interaction toggle [<player>]"
+no_permission_self: "§cYou do not have permission to use this command (voicechat_interaction.command)"
+no_permission_others: "§cYou do not have permission to toggle for others (voicechat_interaction.command.others)"
+player_not_found: "§cPlayer '{player}' not found or not online."
+toggle_self: "§aVoice chat interaction for you: {state}"
+toggle_other: "§e{sender} toggled your voice chat interaction {state}"
+enabled: "§2enabled"
+disabled: "§cdisabled"
+unknown_command: "§eUnknown command. Usage: /voicechat_interaction toggle [<player>]"

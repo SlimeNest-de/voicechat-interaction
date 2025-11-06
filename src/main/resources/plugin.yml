@@ -1,0 +1,28 @@
+name: voicechat_interaction
+version: 1.0.1
+main: de.slimenest.voicechatinteraction.VoiceChatInteraction
+api-version: "1.21"
+prefix: voicechat_interaction
+authors:
+  - SlimeNest
+description: "Let Sculk sensors and the Warden react to real player voice chat. Configurable, i18n, hot-reload."
+website: https://github.com/SlimeNest-de/voicechat-interaction
+depend:
+  - voicechat
+commands:
+  voicechat_interaction:
+    description: "Manage Voice Chat Interaction settings"
+    usage: "/voicechat_interaction <toggle|reload> [<player>]"
+    aliases:
+      - vci
+    permission: voicechat_interaction.command
+permissions:
+  voicechat_interaction.command:
+    description: "Allows toggling voicechat interaction for yourself"
+    default: op
+  voicechat_interaction.command.others:
+    description: "Allows toggling voicechat interaction for other players"
+    default: op
+  voicechat_interaction.command.reload:
+    description: "Allows reloading config and messages"
+    default: op
