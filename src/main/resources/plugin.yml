@@ -1,5 +1,5 @@
 name: voicechat_interaction
-version: 1.0.1
+version: ${project.version}
 main: de.slimenest.voicechatinteraction.VoiceChatInteraction
 api-version: "1.21"
 prefix: voicechat_interaction

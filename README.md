@@ -8,7 +8,7 @@
 
 **VoiceChat Interaction** lets Sculk sensors and the Warden react to real player voice chat in Minecraft. The plugin is highly configurable, supports i18n, and can be hot-reloaded without server restarts.
 
-- **PaperMC 1.21+** compatible
+- **PaperMC 1.21.8+** compatible
 - **Simple Voice Chat** required
 - **Configurable**: Enable/disable group, whisper, and sneak voice triggers
 - **i18n**: English messages by default, easy to localize
