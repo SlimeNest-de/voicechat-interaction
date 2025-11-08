@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.3] - 2025-11-08
+
+### Fixed
+- **Static Analysis Improvements:**
+  - Added explicit null check in `VoiceChatEventBridge.onMicrophonePacket()` to eliminate potential null pointer access warning
+  - Improved IDE compatibility and static analysis compliance
+  - Enhanced code clarity with redundant but explicit null safety checks
+
 ## [1.0.2] - 2025-11-08
 
 ### Changed

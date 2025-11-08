@@ -60,6 +60,11 @@ public class VoiceChatEventBridge implements VoicechatPlugin {
             return;
         }
         
+        // Additional null check for IDE safety (connection is already validated above)
+        if (connection == null) {
+            return;
+        }
+        
         final ServerPlayer voicePlayer = connection.getPlayer();
         final Player bukkitPlayer = extractBukkitPlayer(voicePlayer);
         
