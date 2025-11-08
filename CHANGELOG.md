@@ -51,6 +51,3 @@
 ### Fixed
 - Ensured correct default values are used for all configuration options.
 - Fixed potential issues with player lookup and Sculk event triggering.
-
----
-For previous changes, see earlier releases.
