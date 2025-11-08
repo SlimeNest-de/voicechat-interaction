@@ -1,13 +1,25 @@
 # messages.yml - Default English translations for VoiceChat Interaction
 
+# Command system messages
 only_players: "This command can only be used by players."
 bridge_not_loaded: "Voice chat event bridge is not loaded."
-usage: "§eUsage: /voicechat_interaction toggle [<player>]"
+usage: "§eUsage: /voicechat_interaction toggle [<player>] | /voicechat_interaction reload"
+unknown_command: "§eUnknown command. Usage: /voicechat_interaction toggle [<player>] | /voicechat_interaction reload"
+
+# Permission messages
 no_permission_self: "§cYou do not have permission to use this command (voicechat_interaction.command)"
 no_permission_others: "§cYou do not have permission to toggle for others (voicechat_interaction.command.others)"
+no_permission_reload: "§cYou do not have permission to reload the plugin (voicechat_interaction.command.reload)"
+
+# Player interaction messages
 player_not_found: "§cPlayer '{player}' not found or not online."
 toggle_self: "§aVoice chat interaction for you: {state}"
 toggle_other: "§e{sender} toggled your voice chat interaction {state}"
+
+# State messages
 enabled: "§2enabled"
 disabled: "§cdisabled"
-unknown_command: "§eUnknown command. Usage: /voicechat_interaction toggle [<player>]"
+
+# Reload command messages
+reload_success: "§aVoiceChat Interaction config and messages reloaded successfully."
+reload_failed: "§cFailed to reload configuration. Check console for details."

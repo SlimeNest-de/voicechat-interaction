@@ -7,7 +7,7 @@
     <groupId>de.slimenest.voicechatinteraction</groupId>
     <artifactId>voicechat-interaction</artifactId>
 
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
     <name>VoiceChat Interaction</name>

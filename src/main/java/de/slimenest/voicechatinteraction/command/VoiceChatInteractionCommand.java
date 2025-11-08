@@ -22,21 +22,24 @@ public class VoiceChatInteractionCommand implements CommandExecutor, TabComplete
      * Handles command execution for /voicechat_interaction.
      */
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(VoiceChatInteraction.messages.get("only_players"));
             return true;
         }
-        VoiceChatEventBridge bridge = VoiceChatInteraction.voiceChatBridge;
+        
+        final VoiceChatEventBridge bridge = VoiceChatInteraction.voiceChatBridge;
         if (bridge == null) {
             player.sendMessage(VoiceChatInteraction.messages.get("bridge_not_loaded"));
             return true;
         }
+        
         if (args.length == 0) {
             sendUsageMessage(player);
             return true;
         }
-        String subCommand = args[0].toLowerCase(Locale.ROOT);
+        
+        final String subCommand = args[0].toLowerCase(Locale.ROOT);
         switch (subCommand) {
             case "toggle" -> handleToggleCommand(player, args, bridge);
             case "reload" -> handleReloadCommand(player);
@@ -48,54 +51,82 @@ public class VoiceChatInteractionCommand implements CommandExecutor, TabComplete
     /**
      * Handles the reload subcommand: reloads config and messages.
      */
-    private void handleReloadCommand(Player player) {
+    private void handleReloadCommand(final Player player) {
         if (!player.hasPermission("voicechat_interaction.command.reload")) {
-            player.sendMessage(
-                    "§cYou do not have permission to reload the plugin (voicechat_interaction.command.reload)");
+            player.sendMessage(VoiceChatInteraction.messages.get("no_permission_reload"));
             return;
         }
-        VoiceChatInteraction.instance.reloadConfig();
-        VoiceChatInteraction.config = new de.slimenest.voicechatinteraction.config.ServerConfig(
-                VoiceChatInteraction.instance.getConfig());
-        VoiceChatInteraction.messages = new de.slimenest.voicechatinteraction.util.MessageProvider(
-                VoiceChatInteraction.instance);
-        player.sendMessage("§aVoiceChat Interaction config and messages reloaded.");
+        
+        try {
+            VoiceChatInteraction.instance.reloadConfig();
+            VoiceChatInteraction.config = new de.slimenest.voicechatinteraction.config.ServerConfig(
+                    VoiceChatInteraction.instance.getConfig());
+            VoiceChatInteraction.messages = new de.slimenest.voicechatinteraction.util.MessageProvider(
+                    VoiceChatInteraction.instance);
+            player.sendMessage(VoiceChatInteraction.messages.get("reload_success"));
+        } catch (final Exception e) {
+            VoiceChatInteraction.logger.severe("Failed to reload configuration: " + e.getMessage());
+            player.sendMessage(VoiceChatInteraction.messages.get("reload_failed"));
+        }
     }
 
     /**
      * Handles the toggle subcommand for self or another player.
      */
-    private void handleToggleCommand(Player sender, String[] args, VoiceChatEventBridge eventBridge) {
-        VoiceChatEventBridge bridge = eventBridge;
+    private void handleToggleCommand(final Player sender, final String[] args, final VoiceChatEventBridge bridge) {
         if (args.length == 1) {
-            // Toggle for self
-            if (!sender.hasPermission("voicechat_interaction.command")) {
-                sender.sendMessage(VoiceChatInteraction.messages.get("no_permission_self"));
-                return;
-            }
-            boolean toggledState = !bridge.isToggleEnabled(sender);
-            bridge.setToggle(sender, toggledState);
-            String stateMsg = VoiceChatInteraction.messages.get(toggledState ? "enabled" : "disabled");
-            sender.sendMessage(VoiceChatInteraction.messages.get("toggle_self", Map.of("state", stateMsg)));
+            handleSelfToggle(sender, bridge);
         } else if (args.length == 2) {
-            // Toggle for another player
-            if (!sender.hasPermission("voicechat_interaction.command.others")) {
-                sender.sendMessage(VoiceChatInteraction.messages.get("no_permission_others"));
-                return;
-            }
-            Player target = Bukkit.getPlayer(args[1]);
-            if (target == null || !target.isOnline()) {
-                sender.sendMessage(VoiceChatInteraction.messages.get("player_not_found", Map.of("player", args[1])));
-                return;
-            }
-            boolean toggledState = !bridge.isToggleEnabled(target);
-            bridge.setToggle(target, toggledState);
-            String stateMsg = VoiceChatInteraction.messages.get(toggledState ? "enabled" : "disabled");
-            target.sendMessage(VoiceChatInteraction.messages.get("toggle_other",
-                    Map.of("sender", sender.getName(), "state", stateMsg)));
+            handleOtherPlayerToggle(sender, args[1], bridge);
         } else {
             sendUsageMessage(sender);
         }
+    }
+
+    /**
+     * Handles toggle command for the sender themselves.
+     */
+    private void handleSelfToggle(final Player sender, final VoiceChatEventBridge bridge) {
+        if (!sender.hasPermission("voicechat_interaction.command")) {
+            sender.sendMessage(VoiceChatInteraction.messages.get("no_permission_self"));
+            return;
+        }
+        
+        final boolean newState = !bridge.isPlayerToggleEnabled(sender);
+        bridge.setPlayerToggle(sender, newState);
+        sendToggleMessage(sender, sender, newState, "toggle_self");
+    }
+
+    /**
+     * Handles toggle command for another player.
+     */
+    private void handleOtherPlayerToggle(final Player sender, final String targetName, final VoiceChatEventBridge bridge) {
+        if (!sender.hasPermission("voicechat_interaction.command.others")) {
+            sender.sendMessage(VoiceChatInteraction.messages.get("no_permission_others"));
+            return;
+        }
+        
+        final Player target = Bukkit.getPlayer(targetName);
+        if (target == null || !target.isOnline()) {
+            sender.sendMessage(VoiceChatInteraction.messages.get("player_not_found", Map.of("player", targetName)));
+            return;
+        }
+        
+        final boolean newState = !bridge.isPlayerToggleEnabled(target);
+        bridge.setPlayerToggle(target, newState);
+        sendToggleMessage(sender, target, newState, "toggle_other");
+    }
+
+    /**
+     * Sends the appropriate toggle message to the target player.
+     */
+    private void sendToggleMessage(final Player sender, final Player target, final boolean newState, final String messageKey) {
+        final String stateMsg = VoiceChatInteraction.messages.get(newState ? "enabled" : "disabled");
+        final Map<String, String> replacements = Map.of(
+            "state", stateMsg,
+            "sender", sender.getName()
+        );
+        target.sendMessage(VoiceChatInteraction.messages.get(messageKey, replacements));
     }
 
     /**
@@ -110,17 +141,13 @@ public class VoiceChatInteractionCommand implements CommandExecutor, TabComplete
      * Provides tab completion for the /voicechat_interaction command.
      */
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
         if (args.length == 1) {
-            boolean canReload = sender.hasPermission("voicechat_interaction.command.reload");
-            if (canReload) {
-                return List.of("toggle", "reload");
-            } else {
-                return List.of("toggle");
-            }
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("toggle")) {
+            final boolean canReload = sender.hasPermission("voicechat_interaction.command.reload");
+            return canReload ? List.of("toggle", "reload") : List.of("toggle");
+        } else if (args.length == 2 && "toggle".equalsIgnoreCase(args[0])) {
             if (sender.hasPermission("voicechat_interaction.command.others")) {
-                String input = args[1].toLowerCase(Locale.ROOT);
+                final String input = args[1].toLowerCase(Locale.ROOT);
                 return Bukkit.getOnlinePlayers().stream()
                         .map(Player::getName)
                         .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(input))

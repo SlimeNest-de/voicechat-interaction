@@ -30,14 +30,22 @@ public final class VoiceChatInteraction extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
-        logger = getLogger();
-        bukkitServer = getServer();
-        voiceGameEvent = GameEvent.EAT; // EAT triggers sculk sensors (sound event)
-        loadPluginConfig();
-        messages = new MessageProvider(this);
-        registerVoiceChatBridge();
-        registerCommands();
+        try {
+            instance = this;
+            logger = getLogger();
+            bukkitServer = getServer();
+            voiceGameEvent = GameEvent.EAT; // EAT triggers sculk sensors (sound event)
+            
+            loadPluginConfig();
+            messages = new MessageProvider(this);
+            registerVoiceChatBridge();
+            registerCommands();
+            
+            logger.info("VoiceChat Interaction plugin successfully enabled!");
+        } catch (final Exception e) {
+            logger.severe("Failed to enable VoiceChat Interaction plugin: " + e.getMessage());
+            getServer().getPluginManager().disablePlugin(this);
+        }
     }
 
     @Override
@@ -53,29 +61,43 @@ public final class VoiceChatInteraction extends JavaPlugin {
      * Sets sensible defaults for all config values.
      */
     private void loadPluginConfig() {
-        FileConfiguration fileConfig = this.getConfig();
+        try {
+            final FileConfiguration fileConfig = this.getConfig();
+            setConfigDefaults(fileConfig);
+            fileConfig.options().copyDefaults(true);
+            saveConfig();
+            config = new ServerConfig(fileConfig);
+            logger.info("Configuration loaded successfully");
+        } catch (final Exception e) {
+            logger.severe("Failed to load configuration: " + e.getMessage());
+            throw new RuntimeException("Configuration loading failed", e);
+        }
+    }
+
+    /**
+     * Sets default configuration values.
+     */
+    private void setConfigDefaults(final FileConfiguration fileConfig) {
         fileConfig.addDefault("enable_group_voice", false);
         fileConfig.addDefault("enable_whisper_voice", false);
         fileConfig.addDefault("enable_sneak_voice", false);
         fileConfig.addDefault("activation_db_threshold", -50);
         fileConfig.addDefault("toggle_default_state", true);
         fileConfig.addDefault("activation_cooldown_ticks", 20);
-        fileConfig.options().copyDefaults(true);
-        saveConfig();
-        config = new ServerConfig(fileConfig);
     }
 
     /**
      * Registers the voice chat event bridge with the Simple Voice Chat API.
      */
     private void registerVoiceChatBridge() {
-        BukkitVoicechatService svc = bukkitServer.getServicesManager().load(BukkitVoicechatService.class);
-        if (svc != null) {
+        final BukkitVoicechatService service = bukkitServer.getServicesManager().load(BukkitVoicechatService.class);
+        if (service != null) {
             voiceChatBridge = new VoiceChatEventBridge();
-            svc.registerPlugin(voiceChatBridge);
+            service.registerPlugin(voiceChatBridge);
             logger.info("Successfully registered voicechat_interaction event bridge");
         } else {
-            logger.warning("Failed to register voicechat_interaction event bridge");
+            logger.warning("Simple Voice Chat service not available - event bridge registration failed");
+            logger.warning("Make sure Simple Voice Chat plugin is installed and enabled");
         }
     }
 
@@ -83,8 +105,14 @@ public final class VoiceChatInteraction extends JavaPlugin {
      * Registers plugin commands and tab completers.
      */
     private void registerCommands() {
-        VoiceChatInteractionCommand handler = new VoiceChatInteractionCommand();
-        this.getCommand("voicechat_interaction").setExecutor(handler);
-        this.getCommand("voicechat_interaction").setTabCompleter(handler);
+        final VoiceChatInteractionCommand handler = new VoiceChatInteractionCommand();
+        final org.bukkit.command.PluginCommand command = this.getCommand("voicechat_interaction");
+        if (command != null) {
+            command.setExecutor(handler);
+            command.setTabCompleter(handler);
+            logger.info("Commands registered successfully");
+        } else {
+            logger.severe("Failed to register commands - command not found in plugin.yml");
+        }
     }
 }
